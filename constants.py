@@ -4,6 +4,6 @@ class Constants:
     
     PASSWORD = "put your password"
     
-    DATABASE = "cs122a_hw4"
+    DATABASE = "cs122a"
     
 
