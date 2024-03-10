@@ -41,8 +41,7 @@ def importing(arguments, cursor):
             UCINetID VARCHAR(20),
             Email    VARCHAR(512),
             PRIMARY KEY (UCINetID, Email),
-            FOREIGN KEY (UCINetID) REFERENCES users (UCINetID)
-              ON DELETE CASCADE
+            FOREIGN KEY (UCINetID) REFERENCES users (UCINetID) ON DELETE CASCADE
         )''',
         
         '''CREATE TABLE machines (
@@ -71,8 +70,7 @@ def importing(arguments, cursor):
         
         '''CREATE TABLE students (
             UCINetID VARCHAR(20) PRIMARY KEY NOT NULL,
-            FOREIGN KEY (UCINetID) REFERENCES users(UCINetID)
-              ON DELETE CASCADE
+            FOREIGN KEY (UCINetID) REFERENCES users(UCINetID) ON DELETE CASCADE
         )''',
         
         '''CREATE TABLE use1 (
@@ -129,19 +127,142 @@ def addEmail(arguments, cursor):
 
 def deleteStudent(arguments, cursor):
     uciNetid = arguments[0]
+    if (uciNetid == "NULL"):
+        uciNetid = None
+    checkStudentExistsCommand = '''
+        SELECT * 
+        FROM students
+        WHERE UCINetID = %s;
+    '''
+    deleteStudentCommand = '''
+        DELETE 
+        FROM users
+        WHERE UCINetID = %s;
+    '''
+    try:
+        cursor.execute(checkStudentExistsCommand, (uciNetid,))
+        
+        exists = 0
+        for student in cursor:
+            exists += 1
+
+        #If student doesn't exist, return False
+        if exists == 0:
+            return False
+
+        cursor.execute(deleteStudentCommand, (uciNetid,))
+        return True
+    except:
+        return False
 
 def insertMachine(arguments, cursor):
     machineId, hostName, ipAddr, status, location = arguments
-    machineId = int(machineId)
+    for argument in [machineId,hostName,ipAddr,status,location]:
+        if argument == "NULL":
+            argument = None
+    if machineId != None:
+        machineId = int(machineId)
+
+    checkMachineExistsCommand = '''
+        SELECT * 
+        FROM machines
+        WHERE MachineId = %s;
+    '''
+
     insertMachineCommand = ''' 
         INSERT INTO machines (MachineId, HostName, IPAddress, OperationalStatus, Location)
         VALUES (%s, %s, %s, %s, %s);
         '''
-    cursor.execute(insertMachineCommand, (machineId,hostName,ipAddr,status,location))
-    return True
+    try:
+        cursor.execute(checkMachineExistsCommand, (machineId,))
+
+        exists = 0
+        for machine in cursor:
+            exists += 1
+
+        #if machine with same id already exists, return false
+        if exists > 0:
+            return False
+
+        cursor.execute(insertMachineCommand, (machineId,hostName,ipAddr,status,location))
+        return True
+    except:
+        return False
 
 def insertUse(arguments, cursor):
     projId, uciNetId, machineId, start, end = arguments
+
+    for argument in [projId, uciNetId, machineId, start, end]:
+        if argument == "NULL":
+            argument = None
+    if machineId != None:
+        machineId = int(machineId)
+    if projId != None:
+        projId = int(projId)
+
+    checkProjectExistsCommand = '''
+        SELECT * 
+        FROM projects
+        WHERE ProjectID = %s
+    '''
+
+    checkStudentExistsCommand = '''
+        SELECT * 
+        FROM students
+        WHERE UCINetID = %s
+    '''
+
+    checkMachineExistsCommand = '''
+        SELECT * 
+        FROM machines
+        WHERE MachineID = %s
+    '''
+
+    checkUseExistsCommand = '''
+        SELECT * 
+        FROM use1
+        WHERE ProjectID = %s AND StudentUCINetID = %s AND MachineID = %s;
+    '''
+
+    insertUseCommand = ''' 
+        INSERT INTO use1 (ProjectID, StudentUCINetID, MachineID, StartDate, EndDate)
+        VALUES (%s, %s, %s, %s, %s);
+        '''
+    try:
+        exists = 0
+        cursor.execute(checkProjectExistsCommand, (projId,))
+        for use in cursor:
+            exists += 1
+        cursor.execute(checkStudentExistsCommand, (uciNetId,))
+        for use in cursor:
+            exists += 1
+        cursor.execute(checkMachineExistsCommand, (machineId,))
+        for use in cursor:
+            exists += 1
+
+        #if project/student/machine doesn't exist
+        if exists < 3:
+            return False
+
+
+
+        cursor.execute(checkUseExistsCommand, (projId, uciNetId, machineId))
+
+        exists = 0
+        for use in cursor:
+            exists += 1
+
+        #if use with same primary key already exists, return false
+        if exists > 0:
+            return False
+
+        cursor.execute(insertUseCommand, (projId, uciNetId, machineId, start, end))
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
 
 def updateCourse(arguments, cursor):
     courseId, title = arguments
@@ -169,8 +290,8 @@ try:
     #db_connection = mysql.connector.connect(user='test', password='password', database='cs122a')
 
     cursor = db_connection.cursor()
-    print("Successfully connected to the database")
-    print("Initialization begin")
+    #print("Successfully connected to the database")
+    #print("Initialization begin")
 
     #get function name
     functionName = sys.argv[1]
@@ -186,6 +307,10 @@ try:
         output = addEmail(arguments, cursor)
     elif (functionName == "deleteStudent"):
         output = deleteStudent(arguments, cursor)
+        if (output):
+            print("Success")
+        else:
+            print("Fail")
     elif (functionName == "insertMachine"):
         output = insertMachine(arguments, cursor)
         if (output):
@@ -194,6 +319,10 @@ try:
             print("Fail")
     elif (functionName == "insertUse"):
         output = insertUse(arguments, cursor)
+        if (output):
+            print("Success")
+        else:
+            print("Fail")
     elif (functionName == "updateCourse"):
         output = updateCourse(arguments, cursor)
     elif (functionName == "listCourse"):
@@ -211,8 +340,8 @@ try:
 
     db_connection.commit()
 
-    #will delete before submission
-    print("Initialization end successfully")
+
+    #print("Initialization end successfully")
 
 except mysql.connector.Error as error:
     #will delete before submission
@@ -223,5 +352,4 @@ finally:
         cursor.close()
         db_connection.close()
 
-        #will delete before submission
-        print("MySQL connection is closed")
+        #print("MySQL connection is closed")
