@@ -98,6 +98,20 @@ def importing(arguments, cursor):
     
     import_order = ['users.csv', 'admins.csv', 'courses.csv', 'machines.csv', 'projects.csv', 'students.csv', 'use.csv', 'manage.csv', 'emails.csv']
 
+    get_num_users_command = '''
+        SELECT COUNT(*)
+        FROM users;
+    '''
+    get_num_machines_command = '''
+        SELECT COUNT(*)
+        FROM machines;
+    '''
+    get_num_courses_command = '''
+        SELECT COUNT(*)
+        FROM courses
+    '''
+
+
     for file in import_order:
         with open(os.path.join(folderName, file), 'r') as csvfile:
             reader = csv.reader(csvfile)
@@ -114,8 +128,20 @@ def importing(arguments, cursor):
             values_string = ',\n'.join(all_values)
             query = f"INSERT INTO `{table_name}` VALUES\n{values_string};"
             cursor.execute(query)
-            print(f'Executing: {query}')
-                
+            #print(f'Executing: {query}')
+    
+    cursor.execute(get_num_users_command)
+    result = cursor.fetchone()
+    num_users = result[0]
+    cursor.execute(get_num_machines_command)
+    result = cursor.fetchone()
+    num_machines = result[0]
+    cursor.execute(get_num_courses_command)
+    result = cursor.fetchone()
+    num_courses = result[0]
+
+    return f"{num_users},{num_machines},{num_courses}"
+
 
 
 
@@ -301,6 +327,7 @@ try:
 
     if (functionName == "import"):
         output = importing(arguments, cursor)
+        print(output)
     elif (functionName == "insertStudent"):
         output = insertStudent(arguments, cursor)
     elif (functionName == "addEmail"):
