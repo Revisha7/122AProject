@@ -143,8 +143,6 @@ def importing(arguments, cursor):
     return f"{num_users},{num_machines},{num_courses}"
 
 
-
-
 def insertStudent(arguments, cursor):
     uciNetId, email, first, middle, last = arguments
 
@@ -229,19 +227,19 @@ def insertUse(arguments, cursor):
     checkProjectExistsCommand = '''
         SELECT * 
         FROM projects
-        WHERE ProjectID = %s
+        WHERE ProjectID = %s;
     '''
 
     checkStudentExistsCommand = '''
         SELECT * 
         FROM students
-        WHERE UCINetID = %s
+        WHERE UCINetID = %s;
     '''
 
     checkMachineExistsCommand = '''
         SELECT * 
         FROM machines
-        WHERE MachineID = %s
+        WHERE MachineID = %s;
     '''
 
     checkUseExistsCommand = '''
@@ -270,8 +268,6 @@ def insertUse(arguments, cursor):
         if exists < 3:
             return False
 
-
-
         cursor.execute(checkUseExistsCommand, (projId, uciNetId, machineId))
 
         exists = 0
@@ -288,8 +284,6 @@ def insertUse(arguments, cursor):
         print(e)
         return False
 
-
-
 def updateCourse(arguments, cursor):
     courseId, title = arguments
 
@@ -301,6 +295,22 @@ def popularCourse(arguments, cursor):
 
 def adminEmails(arguments, cursor):
     machineId = arguments[0]
+    adminEmailCommand = '''
+        SELECT A.UCINetID
+        FROM admins A
+        JOIN manage M ON A.UCINetID = M.UCINetID
+        WHERE M.MachineID = machineId
+        ORDER BY A.UCINetID asc;
+    '''
+    try:
+        cursor.execute(adminEmailCommand, (machineId))
+        emails = []
+        for id in cursor:
+            emails.append(id + '@uci.edu')
+        emails.join(';')
+    except:
+        return False
+    # change to return empty table? 
 
 def activeStudent(arguments, cursor):
     machineId, n, start, end = arguments
