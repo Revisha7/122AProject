@@ -308,6 +308,7 @@ def adminEmails(arguments, cursor):
         for id in cursor:
             emails.append(id + '@uci.edu')
         emails.join(';')
+        return emails
     except:
         return False
     # change to return empty table? 
