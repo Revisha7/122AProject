@@ -315,6 +315,13 @@ def adminEmails(arguments, cursor):
 
 def activeStudent(arguments, cursor):
     machineId, n, start, end = arguments
+    activeStudentCommand = '''
+        SELECT S.UCINetID
+        FROM students S
+        JOIN use1 U ON S.UCINetID = U.UCINetID
+        WHERE U.MachineID = machineId AND start >= U.StartDate AND end <= U.EndDate
+    '''
+    # need to add n count and output in a table
 
 def machineUsage(arguments, cursor):
     courseId = arguments[0]
