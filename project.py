@@ -294,23 +294,23 @@ def popularCourse(arguments, cursor):
     n = arguments[0]
 
 def adminEmails(arguments, cursor):
-    machineId = arguments[0]
+    machineId = int(arguments[0])
     adminEmailCommand = '''
         SELECT A.UCINetID
         FROM admins A
         JOIN manage M ON A.UCINetID = M.UCINetID
-        WHERE M.MachineID = machineId
+        WHERE M.MachineID = %s
         ORDER BY A.UCINetID asc;
     '''
     try:
-        cursor.execute(adminEmailCommand, (machineId))
+        cursor.execute(adminEmailCommand, (machineId,))
         emails = []
         for id in cursor:
             emails.append(id + '@uci.edu')
-        emails.join(';')
-        return emails
+        emailList = (';'.join(emails))
+        return emailList
     except:
-        return False
+        return ''
     # change to return empty table? 
 
 def activeStudent(arguments, cursor):
@@ -319,7 +319,7 @@ def activeStudent(arguments, cursor):
         SELECT S.UCINetID
         FROM students S
         JOIN use1 U ON S.UCINetID = U.UCINetID
-        WHERE U.MachineID = machineId AND start >= U.StartDate AND end <= U.EndDate
+        WHERE U.MachineID = %s AND %s >= U.StartDate AND %s <= U.EndDate
     '''
     # need to add n count and output in a table
 
