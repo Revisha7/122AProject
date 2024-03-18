@@ -164,10 +164,10 @@ def insertStudent(arguments, cursor):
 def addEmail(arguments, cursor):
     uciNetId, email = arguments
 
-    add_email = "UPDATE users SET Email = %s WHERE UCINetID = %s"
+    add_email = "INSERT INTO emails (UCINetID, Email) VALUES (%s, %s)"
 
     try:
-        cursor.execute(add_email, (email, uciNetId))
+        cursor.execute(add_email, (uciNetId, email))
         
         print("Success")
     except Exception as e:
