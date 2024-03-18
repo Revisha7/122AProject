@@ -146,8 +146,32 @@ def importing(arguments, cursor):
 def insertStudent(arguments, cursor):
     uciNetId, email, first, middle, last = arguments
 
+    insert_user = """
+    INSERT INTO users (UCINetID, FirstName, MiddleName, LastName)
+    VALUES (%s, %s, %s, %s)
+    """
+    insert_student = "INSERT INTO students (UCINetID) VALUES (%s)"
+
+    try:
+        cursor.execute(insert_user, (uciNetId, first, middle, last))
+        cursor.execute(insert_student, (uciNetId,))
+        
+        print("Success")
+    except Exception as e:
+        print("Fail")
+
+
 def addEmail(arguments, cursor):
-    uciNetId, email = arguments[0]
+    uciNetId, email = arguments
+
+    add_email = "UPDATE users SET Email = %s WHERE UCINetID = %s"
+
+    try:
+        cursor.execute(add_email, (email, uciNetId))
+        
+        print("Success")
+    except Exception as e:
+        print("Fail")
 
 def deleteStudent(arguments, cursor):
     uciNetid = arguments[0]
