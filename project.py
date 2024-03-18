@@ -153,27 +153,12 @@ def deleteStudent(arguments, cursor):
     uciNetid = arguments[0]
     if (uciNetid == "NULL"):
         uciNetid = None
-    checkStudentExistsCommand = '''
-        SELECT * 
-        FROM students
-        WHERE UCINetID = %s;
-    '''
     deleteStudentCommand = '''
         DELETE 
         FROM users
         WHERE UCINetID = %s;
     '''
     try:
-        cursor.execute(checkStudentExistsCommand, (uciNetid,))
-        
-        exists = 0
-        for student in cursor:
-            exists += 1
-
-        #If student doesn't exist, return False
-        if exists == 0:
-            return False
-
         cursor.execute(deleteStudentCommand, (uciNetid,))
         return True
     except:
@@ -187,30 +172,15 @@ def insertMachine(arguments, cursor):
     if machineId != None:
         machineId = int(machineId)
 
-    checkMachineExistsCommand = '''
-        SELECT * 
-        FROM machines
-        WHERE MachineId = %s;
-    '''
-
     insertMachineCommand = ''' 
         INSERT INTO machines (MachineId, HostName, IPAddress, OperationalStatus, Location)
         VALUES (%s, %s, %s, %s, %s);
         '''
     try:
-        cursor.execute(checkMachineExistsCommand, (machineId,))
-
-        exists = 0
-        for machine in cursor:
-            exists += 1
-
-        #if machine with same id already exists, return false
-        if exists > 0:
-            return False
 
         cursor.execute(insertMachineCommand, (machineId,hostName,ipAddr,status,location))
         return True
-    except:
+    except Exception as e:
         return False
 
 def insertUse(arguments, cursor):
@@ -224,64 +194,15 @@ def insertUse(arguments, cursor):
     if projId != None:
         projId = int(projId)
 
-    checkProjectExistsCommand = '''
-        SELECT * 
-        FROM projects
-        WHERE ProjectID = %s;
-    '''
-
-    checkStudentExistsCommand = '''
-        SELECT * 
-        FROM students
-        WHERE UCINetID = %s;
-    '''
-
-    checkMachineExistsCommand = '''
-        SELECT * 
-        FROM machines
-        WHERE MachineID = %s;
-    '''
-
-    checkUseExistsCommand = '''
-        SELECT * 
-        FROM use1
-        WHERE ProjectID = %s AND StudentUCINetID = %s AND MachineID = %s;
-    '''
-
     insertUseCommand = ''' 
         INSERT INTO use1 (ProjectID, StudentUCINetID, MachineID, StartDate, EndDate)
         VALUES (%s, %s, %s, %s, %s);
         '''
     try:
-        exists = 0
-        cursor.execute(checkProjectExistsCommand, (projId,))
-        for use in cursor:
-            exists += 1
-        cursor.execute(checkStudentExistsCommand, (uciNetId,))
-        for use in cursor:
-            exists += 1
-        cursor.execute(checkMachineExistsCommand, (machineId,))
-        for use in cursor:
-            exists += 1
-
-        #if project/student/machine doesn't exist
-        if exists < 3:
-            return False
-
-        cursor.execute(checkUseExistsCommand, (projId, uciNetId, machineId))
-
-        exists = 0
-        for use in cursor:
-            exists += 1
-
-        #if use with same primary key already exists, return false
-        if exists > 0:
-            return False
 
         cursor.execute(insertUseCommand, (projId, uciNetId, machineId, start, end))
         return True
     except Exception as e:
-        print(e)
         return False
 
 def updateCourse(arguments, cursor):
