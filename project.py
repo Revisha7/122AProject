@@ -231,12 +231,59 @@ def insertUse(arguments, cursor):
 
 def updateCourse(arguments, cursor):
     courseId, title = arguments
+    for argument in [courseId, title]:
+        if argument == "NULL":
+            argument = None
+    if courseId != None:
+        courseId = int(courseId)
+    if title != None:
+        title = str(title)
+
+    UpdateCourseCommand = '''
+        UPDATE courses
+        SET Title = %s
+        WHERE CourseID = %s;
+    '''
+    try:
+        cursor.execute(UpdateCourseCommand, (title, courseId))
+        return True
+    except Exception as e:
+        return False
 
 def listCourse(arguments, cursor):
     uciNetId = arguments[0]
+    if uciNetid != None:
+        uciNetid = str(uciNetid)
+
+    listCourseCommand = '''
+        SELECT DISTINCT C.CourseID, C.Title, C.Quarter
+        FROM Courses C, use1 S, projects P
+        WHERE S.StudentUCINetID = %s AND S.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
+    '''
+    try:
+        cursor.execute(listCourseCommand, (uciNetID))
+        return True
+    except Exception as e:
+        return False
 
 def popularCourse(arguments, cursor):
     n = arguments[0]
+    if n != None:
+        n = int(n)
+    popularCourseCommand = '''
+        SELECT C.CourseID, C.Title, C.Quarter
+        FROM courses C, projects P, use1 U
+        WHERE U.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
+        GROUP BY C.CourseID
+        ORDER BY COUNT(U.StudentUCINetID) DESC
+        LIMIT %s;
+    '''
+
+    try:
+        cursor.execute(popularCourseCommand, (n))
+        return True
+    except Exception as e:
+        return False
 
 def adminEmails(arguments, cursor):
     machineId = int(arguments[0])
