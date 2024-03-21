@@ -315,24 +315,26 @@ def popularCourse(arguments, cursor):
         return ""
 
 def adminEmails(arguments, cursor):
-    machineId = int(arguments[0])
+    machineId = arguments[0]
+    if machineId != None:
+        machineId = int(machineId)
     adminEmailCommand = '''
-        SELECT A.UCINetID
-        FROM admins A
-        JOIN manage M ON A.UCINetID = M.UCINetID
+        SELECT *
+        FROM manage M
         WHERE M.MachineID = %s
-        ORDER BY A.UCINetID asc;
+        JOIN users as U ON M.AdministratorUCINetID = U.UCINetID
+        ORDER BY M.AdministratorUCINetID asc;
     '''
     try:
         cursor.execute(adminEmailCommand, (machineId,))
         emails = []
-        for id in cursor:
-            emails.append(id + '@uci.edu')
+        for user in cursor:
+            emails.append(user[0] + '@uci.edu')
+            # want to append (user + (user[0] + '@uci.edu')) to emails ??
         emailList = (';'.join(emails))
         return emailList
     except:
         return ''
-    # change to return empty table? 
 
 def activeStudent(arguments, cursor):
     machineId, n, start, end = arguments

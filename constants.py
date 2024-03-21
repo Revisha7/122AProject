@@ -5,5 +5,3 @@ class Constants:
     PASSWORD = "password"
     
     DATABASE = "cs122a"
-    
-
