@@ -252,19 +252,33 @@ def updateCourse(arguments, cursor):
 
 def listCourse(arguments, cursor):
     uciNetId = arguments[0]
-    if uciNetid != None:
-        uciNetid = str(uciNetid)
+    if uciNetId != None:
+        uciNetId = str(uciNetId)
 
     listCourseCommand = '''
         SELECT DISTINCT C.CourseID, C.Title, C.Quarter
-        FROM Courses C, use1 S, projects P
+        FROM courses C, use1 S, projects P
         WHERE S.StudentUCINetID = %s AND S.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
     '''
     try:
-        cursor.execute(listCourseCommand, (uciNetid,))
-        return True
+        cursor.execute(listCourseCommand, (uciNetId,))
+        output_list = []
+        for course in cursor:
+            output_list.append(course)
+
+        output_list = sorted(output_list, key=lambda x: x[0])
+        
+
+        for course in range(0,len(output_list)):
+            output_list[course] = ",".join(map(str,output_list[course]))
+        
+        output_str = ""
+        output_str = '\n'.join(output_list)
+            
+
+        return output_str
     except Exception as e:
-        return False
+        return ""
 
 def popularCourse(arguments, cursor):
     n = arguments[0]
@@ -368,6 +382,7 @@ try:
             print("Fail")
     elif (functionName == "listCourse"):
         output = listCourse(arguments, cursor)
+        print(output)
     elif (functionName == "popularCourse"):
         output = popularCourse(arguments, cursor)
     elif (functionName == "adminEmails"):
