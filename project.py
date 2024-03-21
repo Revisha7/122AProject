@@ -266,8 +266,6 @@ def listCourse(arguments, cursor):
         output_list = []
         for course in cursor:
             output_list.append(course)
-
-        output_list = sorted(output_list, key=lambda x: x[0])
         
 
         for course in range(0,len(output_list)):
