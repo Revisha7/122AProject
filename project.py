@@ -266,8 +266,6 @@ def listCourse(arguments, cursor):
         output_list = []
         for course in cursor:
             output_list.append(course)
-
-        output_list = sorted(output_list, key=lambda x: x[0])
         
 
         for course in range(0,len(output_list)):
@@ -286,12 +284,12 @@ def popularCourse(arguments, cursor):
     if n != None:
         n = int(n)
     popularCourseCommand = '''
-        SELECT C.CourseID, C.Title, C.Quarter
-        FROM courses C, projects P, use1 U
-        WHERE U.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
-        GROUP BY C.CourseID
-        ORDER BY COUNT(U.StudentUCINetID) DESC
-        LIMIT %s;
+        SELECT CID, Title, COUNT(*) AS StudentCount
+        FROM (SELECT DISTINCT courses.CourseID AS CID, courses.Title AS Title, use1.StudentUCINetID AS StudentUCINetID
+            FROM courses INNER JOIN projects ON courses.CourseID = projects.CourseID INNER JOIN use1 ON use1.ProjectID = projects.ProjectID) AS A
+        GROUP BY CID
+        ORDER BY StudentCount DESC, CID DESC
+        LIMIT %s
     '''
 
     try:
@@ -299,9 +297,6 @@ def popularCourse(arguments, cursor):
         output_list = []
         for course in cursor:
             output_list.append(course)
-
-        output_list = sorted(output_list, key=lambda x: x[0])
-        
 
         for course in range(0,len(output_list)):
             output_list[course] = ",".join(map(str,output_list[course]))
@@ -312,6 +307,7 @@ def popularCourse(arguments, cursor):
 
         return output_str
     except Exception as e:
+        print(e)
         return ""
 
 def adminEmails(arguments, cursor):
@@ -402,6 +398,7 @@ try:
         print(output)
     elif (functionName == "popularCourse"):
         output = popularCourse(arguments, cursor)
+        print(output)
     elif (functionName == "adminEmails"):
         output = adminEmails(arguments, cursor)
     elif (functionName == "activeStudent"):
