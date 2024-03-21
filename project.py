@@ -314,21 +314,31 @@ def adminEmails(arguments, cursor):
     machineId = arguments[0]
     if machineId != None:
         machineId = int(machineId)
-    adminEmailCommand = '''
-        SELECT *
-        FROM manage M
-        WHERE M.MachineID = %s
-        JOIN users as U ON M.AdministratorUCINetID = U.UCINetID
-        ORDER BY M.AdministratorUCINetID asc;
+    # gives list of all admins
+    adminInfo = '''
+        SELECT AdministratorUCINetId, FirstName, MiddleName, LastName
+        FROM Manage
+        JOIN Users ON AdministratorUCINetID = Users.UCINetID
+        WHERE MachineID = %s
+        ORDER BY AdministratorUCINetID asc;
+    '''
+    adminEmailsList = '''
+        SELECT Email
+        FROM Emails
+        WHERE UCINetID = %s
     '''
     try:
-        cursor.execute(adminEmailCommand, (machineId,))
-        emails = []
+        cursor.execute(adminInfo, (machineId,))
+        userInfo = []
         for user in cursor:
-            emails.append(user[0] + '@uci.edu')
-            # want to append (user + (user[0] + '@uci.edu')) to emails ??
-        emailList = (';'.join(emails))
-        return emailList
+            cursor.execute(adminEmailsList, (user.UCINetID,))
+            emailList = []
+            for email in cursor:
+                emailList.append(email)
+            emailList = (';'.join(emailList))   # list of all emails for one admin
+
+            userInfo.append(','.join(user) + emailList)
+        return userInfo
     except:
         return ''
 
