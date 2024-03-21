@@ -261,7 +261,7 @@ def listCourse(arguments, cursor):
         WHERE S.StudentUCINetID = %s AND S.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
     '''
     try:
-        cursor.execute(listCourseCommand, (uciNetID))
+        cursor.execute(listCourseCommand, (uciNetid,))
         return True
     except Exception as e:
         return False
@@ -280,7 +280,7 @@ def popularCourse(arguments, cursor):
     '''
 
     try:
-        cursor.execute(popularCourseCommand, (n))
+        cursor.execute(popularCourseCommand, (n,))
         return True
     except Exception as e:
         return False
@@ -362,6 +362,10 @@ try:
             print("Fail")
     elif (functionName == "updateCourse"):
         output = updateCourse(arguments, cursor)
+        if (output):
+            print("Success")
+        else:
+            print("Fail")
     elif (functionName == "listCourse"):
         output = listCourse(arguments, cursor)
     elif (functionName == "popularCourse"):
