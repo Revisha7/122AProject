@@ -317,29 +317,35 @@ def adminEmails(arguments, cursor):
     # gives list of all admins
     adminInfo = '''
         SELECT AdministratorUCINetId, FirstName, MiddleName, LastName
-        FROM Manage
-        JOIN Users ON AdministratorUCINetID = Users.UCINetID
+        FROM manage
+        JOIN users ON AdministratorUCINetID = users.UCINetID
         WHERE MachineID = %s
         ORDER BY AdministratorUCINetID asc;
     '''
     adminEmailsList = '''
         SELECT Email
-        FROM Emails
+        FROM emails
         WHERE UCINetID = %s
     '''
     try:
         cursor.execute(adminInfo, (machineId,))
         userInfo = []
         for user in cursor:
-            cursor.execute(adminEmailsList, (user.UCINetID,))
+            userInfo.append(list(user))
+        for user in userInfo:
+            cursor.execute(adminEmailsList, (user[0],))
             emailList = []
             for email in cursor:
-                emailList.append(email)
-            emailList = (';'.join(emailList))   # list of all emails for one admin
-
-            userInfo.append(','.join(user) + emailList)
-        return userInfo
-    except:
+                emailList.append(email[0])
+            emailList = ';'.join(emailList)
+            user.append(emailList)
+            if (len(user[2]) == 0):
+                user[2] = "NULL"
+        for user in range(0,len(userInfo)):
+            userInfo[user] = ','.join(map(str,userInfo[user]))
+        
+        return '\n'.join(map(str,userInfo))
+    except Exception as e:
         return ''
 
 def activeStudent(arguments, cursor):
@@ -453,6 +459,7 @@ try:
         print(output)
     elif (functionName == "adminEmails"):
         output = adminEmails(arguments, cursor)
+        print(output)
     elif (functionName == "activeStudent"):
         output = activeStudent(arguments, cursor)
         print(output)
