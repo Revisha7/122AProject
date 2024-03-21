@@ -335,15 +335,57 @@ def adminEmails(arguments, cursor):
 def activeStudent(arguments, cursor):
     machineId, n, start, end = arguments
     activeStudentCommand = '''
-        SELECT S.UCINetID
-        FROM students S
-        JOIN use1 U ON S.UCINetID = U.UCINetID
-        WHERE U.MachineID = %s AND %s >= U.StartDate AND %s <= U.EndDate
+        SELECT U.UCINetID, U.FirstName, U.MiddleName, U.LastName
+        FROM (SELECT S.UCINetID AS UCINetID, COUNT(*) AS Count
+                FROM students S
+                JOIN use1 ON S.UCINetID = use1.StudentUCINetID
+                WHERE use1.MachineID = %s AND %s <= use1.StartDate AND %s >= use1.EndDate
+                GROUP BY S.UCINetID) AS A, users U
+        WHERE A.UCINetID = U.UCINetID AND A.Count >= %s
+        ORDER BY U.UCINetID ASC
     '''
     # need to add n count and output in a table
+    try:
+        cursor.execute(activeStudentCommand, (machineId,start,end, n))
+
+        student_list = []
+        for student in cursor:
+            student_list.append(list(student))
+        for student in range(0,len(student_list)):
+            if len(student_list[student][2]) == 0:
+                student_list[student][2] = "NULL"
+            student_list[student] = ','.join(student_list[student])
+        return '\n'.join(student_list)
+        
+    except Exception as e:
+        return ''
 
 def machineUsage(arguments, cursor):
     courseId = arguments[0]
+    if courseId != None:
+        courseId = int(courseId)
+    machineUsageCommand = '''
+        SELECT machines.MachineID, machines.HostName, machines.IPAddress, A.count
+        FROM (SELECT M.MachineID AS MID, Count(*) AS count
+                FROM machines M JOIN use1 ON use1.MachineID = M.MachineID JOIN projects ON projects.ProjectID = use1.ProjectID JOIN courses ON courses.CourseID = projects.CourseID
+                WHERE courses.CourseID = %s
+                GROUP BY M.MachineID) AS A RIGHT JOIN machines ON A.MID = machines.MachineID
+        ORDER BY machines.MachineID DESC
+    '''
+    try:
+        cursor.execute(machineUsageCommand, (courseId,))
+        machine_list = []
+        for machine in cursor:
+            machine_list.append(list(machine))
+        for machine in range(0,len(machine_list)):
+            if machine_list[machine][-1] is None:
+                machine_list[machine][-1] = 0
+            machine_list[machine] = ','.join(map(str,machine_list[machine]))
+        return '\n'.join(machine_list)
+        
+    except Exception as e:
+        print(e)
+        return ''
 
 # Create a connection to the database
 try:
@@ -403,8 +445,10 @@ try:
         output = adminEmails(arguments, cursor)
     elif (functionName == "activeStudent"):
         output = activeStudent(arguments, cursor)
+        print(output)
     elif (functionName == "machineUsage"):
         output = machineUsage(arguments, cursor)
+        print(output)
 
 
 
