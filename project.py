@@ -258,7 +258,8 @@ def listCourse(arguments, cursor):
     listCourseCommand = '''
         SELECT DISTINCT C.CourseID, C.Title, C.Quarter
         FROM courses C, use1 S, projects P
-        WHERE S.StudentUCINetID = %s AND S.ProjectID = P.ProjectID AND P.CourseID = C.CourseID;
+        WHERE S.StudentUCINetID = %s AND S.ProjectID = P.ProjectID AND P.CourseID = C.CourseID
+        ORDER BY C.CourseID ASC;
     '''
     try:
         cursor.execute(listCourseCommand, (uciNetId,))
@@ -295,9 +296,23 @@ def popularCourse(arguments, cursor):
 
     try:
         cursor.execute(popularCourseCommand, (n,))
-        return True
+        output_list = []
+        for course in cursor:
+            output_list.append(course)
+
+        output_list = sorted(output_list, key=lambda x: x[0])
+        
+
+        for course in range(0,len(output_list)):
+            output_list[course] = ",".join(map(str,output_list[course]))
+        
+        output_str = ""
+        output_str = '\n'.join(output_list)
+            
+
+        return output_str
     except Exception as e:
-        return False
+        return ""
 
 def adminEmails(arguments, cursor):
     machineId = int(arguments[0])
