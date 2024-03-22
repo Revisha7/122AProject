@@ -152,10 +152,13 @@ def insertStudent(arguments, cursor):
     """
     insert_student = "INSERT INTO students (UCINetID) VALUES (%s)"
 
+    insert_emails = "INSERT INTO emails (UCINetID, Email) VALUES (%s, %s)"
+
     try:
         cursor.execute(insert_user, (uciNetId, first, middle, last))
         cursor.execute(insert_student, (uciNetId,))
-        
+        cursor.execute(insert_emails, (uciNetId,email))
+
         print("Success")
     except Exception as e:
         print("Fail")
@@ -227,6 +230,7 @@ def insertUse(arguments, cursor):
         cursor.execute(insertUseCommand, (projId, uciNetId, machineId, start, end))
         return True
     except Exception as e:
+        print(e)
         return False
 
 def updateCourse(arguments, cursor):
@@ -360,7 +364,6 @@ def activeStudent(arguments, cursor):
         WHERE A.UCINetID = U.UCINetID AND A.Count >= %s
         ORDER BY U.UCINetID ASC
     '''
-    # need to add n count and output in a table
     try:
         cursor.execute(activeStudentCommand, (machineId,start,end, n))
 
@@ -407,9 +410,6 @@ def machineUsage(arguments, cursor):
 try:
     db_connection = mysql.connector.connect(user=Constants.USER, password=Constants.PASSWORD, database=Constants.DATABASE)
 
-    #uncomment later for submission
-    #db_connection = mysql.connector.connect(user='test', password='password', database='cs122a')
-
     cursor = db_connection.cursor()
     #print("Successfully connected to the database")
     #print("Initialization begin")
@@ -419,7 +419,6 @@ try:
     arguments = sys.argv[2:]
 
     #call function depending on functionName, and print returned output
-
     if (functionName == "import"):
         output = importing(arguments, cursor)
         print(output)
@@ -475,12 +474,9 @@ try:
     #print("Initialization end successfully")
 
 except mysql.connector.Error as error:
-    #will delete before submission
     print(f"Failed to execute SQL script: {error}")
 
 finally:
     if db_connection.is_connected():
         cursor.close()
         db_connection.close()
-
-        #print("MySQL connection is closed")
