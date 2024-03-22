@@ -230,7 +230,6 @@ def insertUse(arguments, cursor):
         cursor.execute(insertUseCommand, (projId, uciNetId, machineId, start, end))
         return True
     except Exception as e:
-        print(e)
         return False
 
 def updateCourse(arguments, cursor):
