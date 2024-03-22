@@ -145,6 +145,8 @@ def importing(arguments, cursor):
 
 def insertStudent(arguments, cursor):
     uciNetId, email, first, middle, last = arguments
+    if (middle == "NULL"):
+        middle = None
 
     insert_user = """
     INSERT INTO users (UCINetID, FirstName, MiddleName, LastName)
@@ -469,8 +471,6 @@ try:
 
     db_connection.commit()
 
-
-    #print("Initialization end successfully")
 
 except mysql.connector.Error as error:
     print(f"Failed to execute SQL script: {error}")
